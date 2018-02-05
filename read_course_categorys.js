@@ -30,28 +30,40 @@ var options = {
 		'Accept' : 'application/json, text/plain, */*'
 	}
 }
-var offset = 0
-for(var i = 0; i < result.length; i++){//创建分类文件文件夹
-    if(!fs.existsSync('coures_categorys/' + result[i].name)){
-        fs.mkdirSync('coures_categorys/' + result[i].name)
-        // fs.appendFile(`coures_categorys/${result[i].name}/data.txt`,JSON.stringify(result[i],null,4),(err) =>{
-		// 	if(err){
-		// 		console.log(err)
-		// 	}
-        // })
-        
-        categoryListVideos(result[i].id)
-    }
-    console.log("创建完成")
+var _categoryListVideos = []//视频列表id
+
+for(let i = 0; i < result.length; i++){
+    setTimeout(()=>{
+        categoryListVideos(result[i].id,result[i].name)
+    },i*1000)
 }
-console.log(11111)
+if(!fs.existsSync('coures_categorys/' + result[i].name)){
+    fs.mkdirSync('coures_categorys/' + result[i].name)
+    // fs.appendFile(`coures_categorys/${result[i].name}/data.txt`,JSON.stringify(result[i],null,4),(err) =>{
+    // 	if(err){
+    // 		console.log(err)
+    // 	}
+    // })
+    
+    categoryListVideos(result[i].id)
+}
+console.log("创建完成")
 
-function categoryListVideos(id){//获取对应分类id的列表
+function categoryListVideos(id,name){//获取对应分类id的列表
 
-    options.url = 'http://tiku.yunxiao.com/api/course/coursesList/?limit=10&offset=' + offset*10 +'&category_id=' + id
+    options.url = 'http://tiku.yunxiao.com/api/course/coursesList/?limit=10&offset=0&category_id=' + id
     
     request(options,(error,response,body) =>{
         var info = JSON.parse(body)
-        console.log(info.total_num)
+        var videoId = info.videos[0].id
+        var total_num = info.total_num
+        var obj = {
+            videoId,
+            total_num,
+            category_id : id,
+            name : name
+        }
+        _categoryListVideos.push(obj)
     })
 }
+console.log(1111)
