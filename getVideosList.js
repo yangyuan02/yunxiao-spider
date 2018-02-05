@@ -2,23 +2,13 @@ var request = require("request")
 
 var fs = require("fs")
 
-var courseCategory = JSON.parse(fs.readFileSync('coures_categorys/data.txt','utf-8'))//读取视频分类id
+var path = process.argv.splice(2).join("").replace(/\s+/g, "") //命令行传入路径参数
 
-var result = []
+console.log(path)
 
-for(var key in courseCategory){
-    for(var key1 in courseCategory[key].children){
-        for(var key2 in courseCategory[key].children[key1].children){
-            for(var key3 in courseCategory[key].children[key1].children[key2].children){
-                var obj  = {
-                    name : (key + '-' + key1 + '-' + key2 + '-' + key3).replace(/\s+/g, ""),
-                    id :courseCategory[key].children[key1].children[key2].children[key3].id
-                }
-                result.push(obj)
-            }
-        }
-    }
-}
+var videosUrl = [] //最后的每个视频下载的url数组
+
+var videosInfo = JSON.parse(fs.readFileSync(`coures_categorys/${path}/data.txt`,'utf-8'))//读取视频列表
 
 var options = {
 	url : '',//获取分类列表
@@ -30,36 +20,29 @@ var options = {
 		'Accept' : 'application/json, text/plain, */*'
 	}
 }
-var _categoryListVideos = []//视频列表id
 
-for(let i = 0; i < result.length; i++){
-    setTimeout(()=>{
-        categoryListVideos(result[i].id,result[i].name)
-    },i*1000)
-}
-
-function categoryListVideos(id,name){//获取对应分类id的列表
-
-    options.url = 'http://tiku.yunxiao.com/api/course/coursesList/?limit=10&offset=0&category_id=' + id
-    
+function getVideoslist(){
+    options.url = `http://tiku.yunxiao.com/api/course/coursesList?limit=${videosInfo.total_num}&category_id=${videosInfo.category_id}`
+    options.headers.Referer = `http://tiku.yunxiao.com/admin/course/videos/?video=${videosInfo.videoId}&category=${videosInfo.category_id}`
     request(options,(error,response,body) =>{
-        var info = JSON.parse(body)
-        var videoId = info.videos[0].id
-        var total_num = info.total_num
-        var obj = {
-            videoId,
-            total_num,
-            category_id : id,
-            name : name
-        }
-
-        if(!fs.existsSync('coures_categorys/' + name)){
-            fs.mkdirSync('coures_categorys/' + name)
-            fs.appendFile(`coures_categorys/${name}/data.txt`,JSON.stringify(obj,null,4),(err) =>{
-            	if(err){
-            		console.log(err)
-            	}
+        var videos = JSON.parse(body).videos
+        for(let i = 0;i < videos.length;i++){
+            options.url = `http://tiku.yunxiao.com/api/course/videos/${videos[i].id}/`
+            request(options,(error,response,body) =>{
+                videos[i].downloadUrl = JSON.parse(body).data_url
+                videosUrl = videos
+                console.log(videos)
             })
         }
     })
 }
+getVideoslist()
+
+setTimeout(()=>{
+    console.log(111111)
+    fs.appendFile(`coures_categorys/${path}/download_url.txt`,JSON.stringify(videosUrl,null,4),(err) =>{
+        if(err){
+            console.log(err)
+        }
+    })
+},3000)
