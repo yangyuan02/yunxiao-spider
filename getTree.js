@@ -2,7 +2,7 @@ var fs = require("fs")
 
 var request = require("request")
 
-var period = JSON.parse(fs.readFileSync('chapters/data2.txt','utf-8'))
+var period = JSON.parse(fs.readFileSync('chapters/data4.txt','utf-8'))
 
 var name = period.name //文件名字
 
