@@ -34,7 +34,7 @@ function task2(){
 
 function task3(){
     var promise = new Promise((resolve,reject)=>{
-        for(let i = 0;files.length.i++;){
+        for(let i = 0;i<files.length;i++){
             exec(`node download_mp4 ${files[i]}`,(err,stdout,stderr)=>{
                 if (err) {
                     throw new Error(err)
@@ -53,8 +53,10 @@ function task3(){
 
 // task1()
 
-task2().then((data)=>{
-    return task3()
-}).then((data)=>{
-    console.log(data)
-})
+task3()
+
+// task2().then((data)=>{
+//     return task3()
+// }).then((data)=>{
+//     console.log(data)
+// })

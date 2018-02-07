@@ -23,16 +23,26 @@ var downloadFile = function(url, filename, callback) {
 
     var stream = fs.createWriteStream(filename)
 
-    request(url).on("response", res => {
-        var totalSize = res.headers['content-length']
-        res.on("data", data => {
-            downloadSize += data.length
-            // pb.render({ completed: downloadSize, total: totalSize });
-        })
+    request(url).on("response", (error, response,res) => {
+        if (!error && response.statusCode == 200) {
+            var totalSize = response.headers['content-length']
+            res.on("data", data => {
+                downloadSize += data.length
+                // pb.render({ completed: downloadSize, total: totalSize });
+            })
+        }
+        
     }).pipe(stream).on('close', callback)
 }
 
 for(var i = 0; i < videosInfo.length; i++){
+    if(videosInfo[i].id=='0000'){
+        fs.appendFile(`coures_categorys/error.txt`, JSON.stringify(path, null, 4), (err) => {
+            if (err) {
+                console.log(err)
+            }
+        })
+    }
     bagpipe.push(downloadFile,videosInfo[i].downloadUrl, `coures_categorys/${path}/${videosInfo[i].name.replace(/\s+/g, "")}.mp4`, function () {
     
     })
